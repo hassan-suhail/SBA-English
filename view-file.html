@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>View Document</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
@@ -35,7 +35,6 @@
             background-color: #fff;
             box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
             padding: 10px; /* Add some padding */
-            touch-action: none; /* Disable touch gestures for pan/scroll */
             position: relative;
         }
 
@@ -118,43 +117,37 @@
                 }
             }
 
-            // Add pinch-to-zoom functionality
+            // Pinch-to-zoom functionality
             let initialDistance = null;
             let initialScale = scale;
 
-            // Detect touch events for pinch-to-zoom
             viewer.addEventListener('touchstart', function(e) {
                 if (e.touches.length === 2) {
-                    // Calculate the initial distance between two touch points
                     initialDistance = Math.hypot(
                         e.touches[0].clientX - e.touches[1].clientX,
                         e.touches[0].clientY - e.touches[1].clientY
                     );
-                    initialScale = scale; // Store the current scale before pinch
+                    initialScale = scale;
                 }
             });
 
             viewer.addEventListener('touchmove', function(e) {
                 if (e.touches.length === 2 && initialDistance) {
-                    // Calculate the new distance between the two touch points
                     const newDistance = Math.hypot(
                         e.touches[0].clientX - e.touches[1].clientX,
                         e.touches[0].clientY - e.touches[1].clientY
                     );
 
-                    // Calculate the zoom scale based on the pinch distance change
                     const zoomFactor = newDistance / initialDistance;
                     scale = initialScale * zoomFactor;
 
-                    // Prevent too much zoom in/out
+                    // Limit zoom between 0.5 and 3x
                     scale = Math.max(0.5, Math.min(scale, 3));
 
-                    renderPDF(pdf); // Re-render the PDF with the new scale
-                    initialDistance = newDistance; // Update the initial distance
+                    renderPDF(pdf);
                 }
             });
 
-            // Disable default touch behavior (zoom, scroll)
             viewer.addEventListener('touchend', function(e) {
                 if (e.touches.length < 2) {
                     initialDistance = null;
@@ -167,7 +160,6 @@
             e.preventDefault();
         });
 
-        // Disable right-click for downloading
         document.addEventListener('mousedown', function(e) {
             if (e.button === 2) {
                 e.preventDefault();
