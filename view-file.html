@@ -17,8 +17,9 @@
             align-items: center;
             justify-content: center;
         }
-         /* Header Style */
-         header {
+
+        /* Header Style */
+        header {
             width: 100%;
             background-color: black;
             padding: 10px 0;
@@ -34,6 +35,8 @@
             background-color: #fff;
             box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
             padding: 10px; /* Add some padding */
+            touch-action: none; /* Disable touch gestures for pan/scroll */
+            position: relative;
         }
 
         .page {
@@ -59,7 +62,7 @@
 </head>
 <body>
 
-      <!-- Header Section -->
+    <!-- Header Section -->
     <header class="header">
         <img src="logo.png" alt="SoloBird Academy Logo" class="logo">
         <h1 class="title">
@@ -67,11 +70,14 @@
         </h1>
     </header>
 
+    <!-- PDF Container -->
     <div class="pdf-container" id="pdf-viewer">
         <!-- PDF content will be rendered here -->
     </div>
 
     <script>
+        let scale = 1.5; // Initial zoom scale
+
         // Get the file name from the query parameter
         const urlParams = new URLSearchParams(window.location.search);
         const fileName = urlParams.get('file');
@@ -80,36 +86,80 @@
         // Load and render the PDF using PDF.js
         pdfjsLib.getDocument(fileUrl).promise.then(function(pdf) {
             const viewer = document.getElementById('pdf-viewer');
+            renderPDF(pdf);
 
-            // Define the scale factor for page rendering
-            const scale = 1.5;  // Adjust this to zoom in/out
+            // Render the PDF based on the current scale
+            function renderPDF(pdf) {
+                viewer.innerHTML = ''; // Clear previous content
+                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                    pdf.getPage(pageNum).then(function(page) {
+                        const viewport = page.getViewport({ scale: scale });
 
-            // Loop through each page of the PDF and render it
-            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-                pdf.getPage(pageNum).then(function(page) {
-                    const viewport = page.getViewport({ scale: scale });
+                        // Create a container div for each page
+                        const pageDiv = document.createElement('div');
+                        pageDiv.classList.add('page');
 
-                    // Create a container div for each page
-                    const pageDiv = document.createElement('div');
-                    pageDiv.classList.add('page');
+                        // Create a canvas to render the PDF page
+                        const canvas = document.createElement('canvas');
+                        pageDiv.appendChild(canvas);
+                        viewer.appendChild(pageDiv);
 
-                    // Create a canvas to render the PDF page
-                    const canvas = document.createElement('canvas');
-                    pageDiv.appendChild(canvas);
-                    viewer.appendChild(pageDiv);
+                        // Get the context to render the page
+                        const context = canvas.getContext('2d');
+                        canvas.height = viewport.height;
+                        canvas.width = viewport.width;
 
-                    // Get the context to render the page
-                    const context = canvas.getContext('2d');
-                    canvas.height = viewport.height;
-                    canvas.width = viewport.width;
-
-                    // Render the page on the canvas
-                    page.render({
-                        canvasContext: context,
-                        viewport: viewport
+                        // Render the page on the canvas
+                        page.render({
+                            canvasContext: context,
+                            viewport: viewport
+                        });
                     });
-                });
+                }
             }
+
+            // Add pinch-to-zoom functionality
+            let initialDistance = null;
+            let initialScale = scale;
+
+            // Detect touch events for pinch-to-zoom
+            viewer.addEventListener('touchstart', function(e) {
+                if (e.touches.length === 2) {
+                    // Calculate the initial distance between two touch points
+                    initialDistance = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    initialScale = scale; // Store the current scale before pinch
+                }
+            });
+
+            viewer.addEventListener('touchmove', function(e) {
+                if (e.touches.length === 2 && initialDistance) {
+                    // Calculate the new distance between the two touch points
+                    const newDistance = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+
+                    // Calculate the zoom scale based on the pinch distance change
+                    const zoomFactor = newDistance / initialDistance;
+                    scale = initialScale * zoomFactor;
+
+                    // Prevent too much zoom in/out
+                    scale = Math.max(0.5, Math.min(scale, 3));
+
+                    renderPDF(pdf); // Re-render the PDF with the new scale
+                    initialDistance = newDistance; // Update the initial distance
+                }
+            });
+
+            // Disable default touch behavior (zoom, scroll)
+            viewer.addEventListener('touchend', function(e) {
+                if (e.touches.length < 2) {
+                    initialDistance = null;
+                }
+            });
         });
 
         // Disable right-click (for download and save as options)
