@@ -1,0 +1,89 @@
+/* Reset some default styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Montserrat', sans-serif;
+    background-color: #f5f5f5;
+    color: #333;
+    overflow-y: auto;
+    padding: 0 15px;
+    max-width: 480px; /* Makes it mobile-specific */
+    margin: 0 auto;
+}
+
+/* Header Styles */
+.header {
+    background-color: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    width: 100%;
+}
+
+.logo {
+    width: 40px;
+    height: auto;
+    margin-right: 10px;
+}
+
+.title {
+    font-size: 1.5em;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+}
+
+.title-solo {
+    color: white;
+    margin-right: 5px; /* Add spacing between the two words */
+}
+
+.title-academy {
+    color: #0000A0; /* Darker blue color */
+}
+
+/* Notice Styles */
+.notices {
+    padding: 20px 0;
+}
+
+.notice {
+    background-color: #fff;
+    border-radius: 5px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.notice-date {
+    font-size: 0.8em;
+    color: #888;
+    margin-bottom: 5px;
+}
+
+.notice-title {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.notice-subtitle {
+    font-size: 1em;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.notice-link {
+    color: #0000A0; /* Dark blue color */
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.notice-link:hover {
+    text-decoration: underline;
+}
