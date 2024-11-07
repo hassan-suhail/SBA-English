@@ -24,6 +24,10 @@ body {
     padding: 10px;
     width: 100%;
 }
+.table-center {
+    margin-left: auto;
+    margin-right: auto;
+  }
 
 .logo {
     width: 40px;
