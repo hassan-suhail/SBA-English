@@ -5,3 +5,7 @@ function goBack() {
         window.location.href = 'index.html';
     }
 }
+
+function refreshPage() {
+    location.reload(); // Reloads the entire page
+}
