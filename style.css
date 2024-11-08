@@ -15,31 +15,36 @@ body {
     margin: 0 auto;
 }
 
-/* Header Styles */
-.header {
-    background-color: #000;
+/* Full-width Header Style */
+header {
+    width: 100%; /* Ensures header spans the full width of the screen */
+    background-color: black;
+    padding: 10px 0;
+    color: white;
     display: flex;
     align-items: center;
-    justify-content: center;
-    padding: 10px;
-    width: 100%;
+    justify-content: center; /* Centers the title text */
+    position: relative;
+    box-sizing: border-box; /* Includes padding in the width calculation */
+    margin: 0; /* Removes any default margin */
+    overflow: hidden; /* Prevents any unintended scrolling */
 }
+
 .table-center {
     margin-left: auto;
     margin-right: auto;
   }
 
-.logo {
-    width: 40px;
-    height: auto;
+  .header .logo {
     margin-right: 10px;
+    width: 40px;
 }
 
 .title {
     font-size: 1.5em;
     font-weight: bold;
-    display: flex;
-    align-items: center;
+    color: white;
+    margin: 0; /* Ensure title is centered without extra spacing */
 }
 
 .title-solo {
@@ -49,6 +54,27 @@ body {
 
 .title-academy {
     color: #0000A0; /* Darker blue color */
+}
+
+/* Back and Refresh Buttons */
+.back-button,
+.refresh-button {
+    position: absolute;
+    top: 10px;
+    font-size: 1.2em;
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.back-button {
+    left: 10px;
+}
+
+.refresh-button {
+    right: 10px;
 }
 
 /* Notice Styles */
