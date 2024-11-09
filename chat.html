@@ -2,120 +2,61 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat</title>
-    <!-- Google Identity Services and GAPI Libraries -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <script src="https://apis.google.com/js/api.js" async defer></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>View Document</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
+    <script src="script.js"></script>
+    
+
+    <style>
+        body {
+            background-color: #f5f5f5;
+            font-family: 'Montserrat', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Header Style */
+        header {
+            width: 100%;
+            background-color: black;
+            padding: 10px 0;
+            text-align: center;
+            color: white;
+        }
+
+        
+    </style>
 </head>
 <body>
-    <div id="chat-box"></div>
-    <input type="text" id="message-input" placeholder="Enter your message">
-    <button onclick="sendMessage()">Send</button>
+  
 
-    <script>
-        // Credentials and Spreadsheet information
-        const CLIENT_ID = "452875508182-oh59nv1r45bbapn77o7iqmp688levf97.apps.googleusercontent.com"; 
-        const API_KEY = "AIzaSyBPqIF_BJstzy0W2gVJr52wG6f3HQS2-kQ"; 
-        const SPREADSHEET_ID = "17saqjGpfCLxFvTGrlIwPbJ-TeupNthLoGkx34hHu204"; 
-        const RANGE = "Sheet1!A:B"; 
+    <!-- Header Section -->
+<header class="header">
+  <button onclick="goBack()" class="back-button">&#8592; </button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="logo.png" alt="SoloBird Academy Logo" class="logo"> 
+  <h1 class="title">
+      <span class="title-solo">SoloBird</span> <span class="title-academy">Academy</span>
+  </h1>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <button onclick="refreshPage()" class="refresh-button">&#x21bb; </button>
+</header>
 
-        let tokenClient;
-        let gapiInited = false;
-        let gisInited = false;
-
-        // Load GAPI and initialize client
-        function gapiLoaded() {
-            gapi.load("client", initializeGapiClient);
-        }
-
-        async function initializeGapiClient() {
-            await gapi.client.init({
-                apiKey: API_KEY,
-                discoveryDocs: ["https://sheets.googleapis.com/$discovery/rest?version=v4"],
-            });
-            gapiInited = true;
-            maybeEnableButtons();
-        }
-
-        // Load Google Identity Services (GIS)
-        function gisLoaded() {
-            tokenClient = google.accounts.oauth2.initTokenClient({
-                client_id: CLIENT_ID,
-                scope: "https://www.googleapis.com/auth/spreadsheets",
-                callback: "" // Set later
-            });
-            gisInited = true;
-            maybeEnableButtons();
-        }
-
-        // Enable send button once GAPI and GIS are initialized
-        function maybeEnableButtons() {
-            if (gapiInited && gisInited) {
-                document.querySelector("button").disabled = false;
-            }
-        }
-
-        // Handle user authentication on button click
-        function handleAuthClick() {
-            tokenClient.callback = async (response) => {
-                if (response.error !== undefined) {
-                    throw response;
-                }
-                console.log("User authenticated and token acquired.");
-            };
-
-            if (gapi.client.getToken() === null) {
-                // Request user to select account and consent
-                tokenClient.requestAccessToken({ prompt: "consent" });
-            } else {
-                // Use existing token
-                tokenClient.requestAccessToken({ prompt: "" });
-            }
-        }
-
-        // Send message to Google Sheets
-        async function sendMessage() {
-            const message = document.getElementById("message-input").value;
-            if (!message) {
-                alert("Please enter a message.");
-                return;
-            }
-            const timestamp = new Date().toLocaleString();
-            const values = [[message, timestamp]];
-
-            const body = {
-                values: values
-            };
-
-            try {
-                await gapi.client.sheets.spreadsheets.values.append({
-                    spreadsheetId: SPREADSHEET_ID,
-                    range: RANGE,
-                    valueInputOption: "RAW",
-                    resource: body,
-                });
-                displayMessage(message, timestamp);
-                document.getElementById("message-input").value = "";
-            } catch (error) {
-                console.error("Error sending message:", error);
-                alert("Failed to send message.");
-            }
-        }
-
-        // Display message in chat box
-        function displayMessage(message, timestamp) {
-            const chatBox = document.getElementById("chat-box");
-            const messageElem = document.createElement("p");
-            messageElem.textContent = `${timestamp}: ${message}`;
-            chatBox.appendChild(messageElem);
-        }
-
-        // Initialize GIS and GAPI libraries on window load
-        window.onload = () => {
-            gapiLoaded();
-            gisLoaded();
-        };
+<h2>Click in the Chat button in the lower right corner of the screen and send your query</h2>
+<!--Start of Tawk.to Script-->
+<script type="text/javascript">
+    var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+    (function(){
+    var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+    s1.async=true;
+    s1.src='https://embed.tawk.to/672fa1872480f5b4f59b306f/1ic90tvak';
+    s1.charset='UTF-8';
+    s1.setAttribute('crossorigin','*');
+    s0.parentNode.insertBefore(s1,s0);
+    })();
     </script>
-</body>
-</html>
+    <!--End of Tawk.to Script-->
