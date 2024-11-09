@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Chat</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .chat-container {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 10px;
+        }
+        .messages {
+            margin-bottom: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+        .message {
+            margin: 5px 0;
+        }
+        .message .text {
+            background-color: #f1f1f1;
+            padding: 8px;
+            border-radius: 4px;
+        }
+        .message input {
+            width: calc(100% - 20px);
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        .message button {
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .message button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="messages" id="messages">
+            <!-- Messages will be displayed here -->
+        </div>
+        <div class="message">
+            <input type="text" id="messageInput" placeholder="Type a message..." />
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        // Load previous messages from local storage
+        function loadMessages() {
+            const messagesContainer = document.getElementById('messages');
+            const storedMessages = JSON.parse(localStorage.getItem('chatMessages')) || [];
+
+            // Display messages
+            storedMessages.forEach(msg => {
+                const messageContainer = document.createElement('div');
+                messageContainer.classList.add('message');
+                const text = document.createElement('div');
+                text.classList.add('text');
+                text.innerText = msg;
+                messageContainer.appendChild(text);
+                messagesContainer.appendChild(messageContainer);
+            });
+
+            messagesContainer.scrollTop = messagesContainer.scrollHeight; // Scroll to the latest message
+        }
+
+        // Save messages to local storage
+        function saveMessages() {
+            const messagesContainer = document.getElementById('messages');
+            const messageTexts = [];
+            messagesContainer.querySelectorAll('.message .text').forEach((msgElem) => {
+                messageTexts.push(msgElem.innerText);
+            });
+            localStorage.setItem('chatMessages', JSON.stringify(messageTexts));
+        }
+
+        // Function to send a message
+        function sendMessage() {
+            const inputField = document.getElementById('messageInput');
+            const messageText = inputField.value.trim();
+
+            if (messageText === '') return;
+
+            // Add the new message to the page
+            const messageContainer = document.createElement('div');
+            messageContainer.classList.add('message');
+            const text = document.createElement('div');
+            text.classList.add('text');
+            text.innerText = messageText;
+
+            messageContainer.appendChild(text);
+            document.getElementById('messages').appendChild(messageContainer);
+
+            inputField.value = ''; // Clear input field
+            document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+
+            // Save messages to local storage
+            saveMessages();
+        }
+
+        // Load previous messages when the page loads
+        window.onload = loadMessages;
+    </script>
+</body>
+</html>
