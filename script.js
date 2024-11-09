@@ -9,3 +9,4 @@ function goBack() {
 function refreshPage() {
     location.reload(); // Reloads the entire page
 }
+

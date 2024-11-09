@@ -24,10 +24,13 @@ header {
     display: flex;
     align-items: center;
     justify-content: center; /* Centers the title text */
-    position: relative;
+    
     box-sizing: border-box; /* Includes padding in the width calculation */
     margin: 0; /* Removes any default margin */
     overflow: hidden; /* Prevents any unintended scrolling */
+    text-align: center;
+    margin-bottom: 10px;
+        
 }
 
 .table-center {

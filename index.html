@@ -2,13 +2,45 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SoloBird Academy</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>View Document</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
     <script src="script.js"></script>
+    
 
+    <style>
+        body {
+            background-color: #f5f5f5;
+            font-family: 'Montserrat', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Header Style */
+        header {
+            width: 100%;
+            background-color: black;
+            padding: 10px 0;
+            text-align: center;
+            color: white;
+        }
+
+        
+    </style>
 </head>
 <body>
+  <script>
+    // Check if the user is logged in
+    if (localStorage.getItem("loggedIn") !== "true") {
+        // Redirect to login page if not logged in
+        window.location.href = "login.html";
+    }
+</script>
 
     <!-- Header Section -->
 <header class="header">
