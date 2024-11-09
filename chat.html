@@ -3,120 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Chat</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-        .chat-container {
-            width: 100%;
-            max-width: 500px;
-            margin: 0 auto;
-            padding: 10px;
-        }
-        .messages {
-            margin-bottom: 10px;
-            max-height: 300px;
-            overflow-y: auto;
-            border: 1px solid #ccc;
-            padding: 10px;
-        }
-        .message {
-            margin: 5px 0;
-        }
-        .message .text {
-            background-color: #f1f1f1;
-            padding: 8px;
-            border-radius: 4px;
-        }
-        .message input {
-            width: calc(100% - 20px);
-            padding: 10px;
-            border-radius: 4px;
-            margin-bottom: 10px;
-        }
-        .message button {
-            padding: 10px;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .message button:hover {
-            background-color: #218838;
-        }
-    </style>
+    <title>Chat Page</title>
 </head>
 <body>
-    <div class="chat-container">
-        <div class="messages" id="messages">
-            <!-- Messages will be displayed here -->
-        </div>
-        <div class="message">
-            <input type="text" id="messageInput" placeholder="Type a message..." />
-            <button onclick="sendMessage()">Send</button>
-        </div>
+    <h2>Chat</h2>
+
+    <!-- Chat box where messages will appear -->
+    <div id="chat-box" style="border: 1px solid #ccc; height: 300px; overflow-y: scroll; padding: 10px;">
+        <!-- Messages will be appended here -->
     </div>
 
+    <!-- Input field to type new messages -->
+    <input type="text" id="chat-input" placeholder="Type a message..." style="width: 80%;">
+    <button onclick="sendMessage()">Send</button>
+
+    <!-- Load the Google API client library -->
+    <script src="https://apis.google.com/js/api.js"></script>
+
     <script>
-        // Load previous messages from local storage
-        function loadMessages() {
-            const messagesContainer = document.getElementById('messages');
-            const storedMessages = JSON.parse(localStorage.getItem('chatMessages')) || [];
+        let auth2Client;
+        const SHEET_ID = '452875508182-oh59nv1r45bbapn77o7iqmp688levf97.apps.googleusercontent.com'; // Replace with your OAuth client ID
+        const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
 
-            // Display messages
-            storedMessages.forEach(msg => {
-                const messageContainer = document.createElement('div');
-                messageContainer.classList.add('message');
-                const text = document.createElement('div');
-                text.classList.add('text');
-                text.innerText = msg;
-                messageContainer.appendChild(text);
-                messagesContainer.appendChild(messageContainer);
+        async function initializeClient() {
+            return new Promise((resolve, reject) => {
+                gapi.load('client:auth2', async () => {
+                    try {
+                        await gapi.client.init({
+                            apiKey: 'AIzaSyBPqIF_BJstzy0W2gVJr52wG6f3HQS2-kQ',   // Optional: this can be removed if only using OAuth
+                            clientId: CLIENT_ID,
+                            scope: SCOPES
+                        });
+                        auth2Client = gapi.auth2.getAuthInstance();
+                        resolve();
+                    } catch (error) {
+                        reject(error);
+                    }
+                });
             });
-
-            messagesContainer.scrollTop = messagesContainer.scrollHeight; // Scroll to the latest message
         }
 
-        // Save messages to local storage
-        function saveMessages() {
-            const messagesContainer = document.getElementById('messages');
-            const messageTexts = [];
-            messagesContainer.querySelectorAll('.message .text').forEach((msgElem) => {
-                messageTexts.push(msgElem.innerText);
-            });
-            localStorage.setItem('chatMessages', JSON.stringify(messageTexts));
+        async function authenticate() {
+            if (!auth2Client.isSignedIn.get()) {
+                await auth2Client.signIn();
+            }
         }
 
-        // Function to send a message
-        function sendMessage() {
-            const inputField = document.getElementById('messageInput');
-            const messageText = inputField.value.trim();
+        async function sendMessage() {
+            const message = document.getElementById("chat-input").value;
+            if (!message) return;
 
-            if (messageText === '') return;
+            const now = new Date().toISOString();
 
-            // Add the new message to the page
-            const messageContainer = document.createElement('div');
-            messageContainer.classList.add('message');
-            const text = document.createElement('div');
-            text.classList.add('text');
-            text.innerText = messageText;
+            try {
+                await authenticate(); // Ensure the user is signed in
+                await gapi.client.sheets.spreadsheets.values.append({
+                    spreadsheetId: SHEET_ID,
+                    range: 'Sheet1!A:B',
+                    valueInputOption: 'USER_ENTERED',
+                    resource: {
+                        values: [[now, message]]
+                    }
+                });
 
-            messageContainer.appendChild(text);
-            document.getElementById('messages').appendChild(messageContainer);
-
-            inputField.value = ''; // Clear input field
-            document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
-
-            // Save messages to local storage
-            saveMessages();
+                document.getElementById("chat-input").value = ''; // Clear the input field
+                loadMessages(); // Reload messages
+            } catch (error) {
+                console.error("Error sending message:", error);
+                alert("Failed to send message. Please check your credentials and try again.");
+            }
         }
 
-        // Load previous messages when the page loads
-        window.onload = loadMessages;
+        async function loadMessages() {
+            try {
+                const response = await gapi.client.sheets.spreadsheets.values.get({
+                    spreadsheetId: SHEET_ID,
+                    range: 'Sheet1!A:B'
+                });
+
+                const chatBox = document.getElementById("chat-box");
+                chatBox.innerHTML = ''; // Clear the chat box
+
+                const rows = response.result.values;
+                if (rows && rows.length > 0) {
+                    rows.forEach(row => {
+                        const timestamp = row[0];
+                        const message = row[1];
+                        const messageElement = document.createElement('div');
+                        messageElement.textContent = `${timestamp}: ${message}`;
+                        chatBox.appendChild(messageElement);
+                    });
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                }
+            } catch (error) {
+                console.error("Error loading messages:", error);
+                alert("Failed to load messages. Please check your credentials and try again.");
+            }
+        }
+
+        async function init() {
+            await initializeClient();
+            await loadMessages();
+        }
+
+        // Initialize the Google API client and load messages on page load
+        window.onload = init;
     </script>
 </body>
 </html>
