@@ -4,46 +4,78 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat</title>
-    <script src="https://apis.google.com/js/api.js"></script>
+    <!-- Google Identity Services and GAPI Libraries -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://apis.google.com/js/api.js" async defer></script>
 </head>
 <body>
-    <div id="chat-box">
-        <!-- Display messages here -->
-    </div>
+    <div id="chat-box"></div>
     <input type="text" id="message-input" placeholder="Enter your message">
     <button onclick="sendMessage()">Send</button>
 
     <script>
-        const CLIENT_ID = "452875508182-oh59nv1r45bbapn77o7iqmp688levf97.apps.googleusercontent.com"; // Replace with your OAuth Client ID
-        const API_KEY = "AIzaSyBPqIF_BJstzy0W2gVJr52wG6f3HQS2-kQ"; // Replace with your Google API Key
-        const SPREADSHEET_ID = "17saqjGpfCLxFvTGrlIwPbJ-TeupNthLoGkx34hHu204"; // Replace with your Google Sheets ID
-        const RANGE = "Sheet1!A:B"; // Adjust according to your sheet structure
+        // Credentials and Spreadsheet information
+        const CLIENT_ID = "452875508182-oh59nv1r45bbapn77o7iqmp688levf97.apps.googleusercontent.com"; 
+        const API_KEY = "AIzaSyBPqIF_BJstzy0W2gVJr52wG6f3HQS2-kQ"; 
+        const SPREADSHEET_ID = "17saqjGpfCLxFvTGrlIwPbJ-TeupNthLoGkx34hHu204"; 
+        const RANGE = "Sheet1!A:B"; 
 
-        function initClient() {
-            gapi.client.init({
+        let tokenClient;
+        let gapiInited = false;
+        let gisInited = false;
+
+        // Load GAPI and initialize client
+        function gapiLoaded() {
+            gapi.load("client", initializeGapiClient);
+        }
+
+        async function initializeGapiClient() {
+            await gapi.client.init({
                 apiKey: API_KEY,
-                clientId: CLIENT_ID,
                 discoveryDocs: ["https://sheets.googleapis.com/$discovery/rest?version=v4"],
-                scope: "https://www.googleapis.com/auth/spreadsheets"
-            }).then(() => {
-                gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
-                updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
             });
+            gapiInited = true;
+            maybeEnableButtons();
         }
 
-        function handleClientLoad() {
-            gapi.load("client:auth2", initClient);
+        // Load Google Identity Services (GIS)
+        function gisLoaded() {
+            tokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: CLIENT_ID,
+                scope: "https://www.googleapis.com/auth/spreadsheets",
+                callback: "" // Set later
+            });
+            gisInited = true;
+            maybeEnableButtons();
         }
 
-        function updateSigninStatus(isSignedIn) {
-            if (isSignedIn) {
-                console.log("Signed in successfully");
-            } else {
-                gapi.auth2.getAuthInstance().signIn();
+        // Enable send button once GAPI and GIS are initialized
+        function maybeEnableButtons() {
+            if (gapiInited && gisInited) {
+                document.querySelector("button").disabled = false;
             }
         }
 
-        function sendMessage() {
+        // Handle user authentication on button click
+        function handleAuthClick() {
+            tokenClient.callback = async (response) => {
+                if (response.error !== undefined) {
+                    throw response;
+                }
+                console.log("User authenticated and token acquired.");
+            };
+
+            if (gapi.client.getToken() === null) {
+                // Request user to select account and consent
+                tokenClient.requestAccessToken({ prompt: "consent" });
+            } else {
+                // Use existing token
+                tokenClient.requestAccessToken({ prompt: "" });
+            }
+        }
+
+        // Send message to Google Sheets
+        async function sendMessage() {
             const message = document.getElementById("message-input").value;
             if (!message) {
                 alert("Please enter a message.");
@@ -56,21 +88,22 @@
                 values: values
             };
 
-            gapi.client.sheets.spreadsheets.values.append({
-                spreadsheetId: SPREADSHEET_ID,
-                range: RANGE,
-                valueInputOption: "RAW",
-                resource: body
-            }).then((response) => {
-                if (response.status === 200) {
-                    displayMessage(message, timestamp);
-                    document.getElementById("message-input").value = "";
-                } else {
-                    alert("Error sending message");
-                }
-            }).catch(error => console.error("Error sending message:", error));
+            try {
+                await gapi.client.sheets.spreadsheets.values.append({
+                    spreadsheetId: SPREADSHEET_ID,
+                    range: RANGE,
+                    valueInputOption: "RAW",
+                    resource: body,
+                });
+                displayMessage(message, timestamp);
+                document.getElementById("message-input").value = "";
+            } catch (error) {
+                console.error("Error sending message:", error);
+                alert("Failed to send message.");
+            }
         }
 
+        // Display message in chat box
         function displayMessage(message, timestamp) {
             const chatBox = document.getElementById("chat-box");
             const messageElem = document.createElement("p");
@@ -78,8 +111,11 @@
             chatBox.appendChild(messageElem);
         }
 
-        // Load the API client and auth library
-        handleClientLoad();
+        // Initialize GIS and GAPI libraries on window load
+        window.onload = () => {
+            gapiLoaded();
+            gisLoaded();
+        };
     </script>
 </body>
 </html>
