@@ -1,69 +1,130 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>View Document</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
-    <script src="script.js"></script>
-    
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Sheets Chat App</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f0f0f0;
+      margin: 0;
+    }
 
-    <style>
-        body {
-            background-color: #f5f5f5;
-            font-family: 'Montserrat', sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
+    .chat-container {
+      width: 100%;
+      max-width: 100%;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
 
-        /* Header Style */
-        header {
-            width: 100%;
-            background-color: black;
-            padding: 10px 0;
-            text-align: center;
-            color: white;
-        }
+    /* Chat Header */
+    .chat-header {
+      padding: 15px;
+      background-color: #0000A0;
+      color: white;
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+    }
 
-        
-    </style>
-    
-            
-    <script defer="defer" type="text/javascript" src="https://solobird-academy.odoo.com/im_livechat/loader/2"></script>
-            
-    <script defer="defer" type="text/javascript" src="https://solobird-academy.odoo.com/im_livechat/assets_embed.js"></script>
+    .chat-box {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+      border-bottom: 1px solid #ddd;
+      max-height: 70vh;
+    }
+
+    .chat-message {
+      margin-bottom: 10px;
+      padding: 8px;
+      background-color: #e1ffc7;
+      border-radius: 5px;
+    }
+
+    #message-input {
+      padding: 10px;
+      border: none;
+      outline: none;
+      flex: 1;
+      width: calc(100% - 100px);
+    }
+
+    #send-button {
+      padding: 10px;
+      background-color: #0000A0;
+      color: white;
+      border: none;
+      cursor: pointer;
+      width: 80px;
+    }
+  </style>
 </head>
 <body>
+  <div class="chat-container">
+    <div class="chat-header">SBA English Chat Room</div> <!-- Header added -->
+    <div id="chat-box" class="chat-box"></div>
+    <input type="text" id="message-input" placeholder="Type a message..." />
+    <button id="send-button">Send</button>
+  </div>
   
+  <script>
+    const apiUrl = "https://sheetdb.io/api/v1/arlf5plqjztri"; // replace with your SheetDB API URL
 
-    <!-- Header Section -->
-<header class="header">
-  <button onclick="goBack()" class="back-button">&#8592; </button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="logo.png" alt="SoloBird Academy Logo" class="logo"> 
-  <h1 class="title">
-      <span class="title-solo">SoloBird</span> <span class="title-academy">Academy</span>
-  </h1>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <button onclick="refreshPage()" class="refresh-button">&#x21bb; v</button>
-</header>
+    async function fetchMessages() {
+      try {
+        const response = await fetch(apiUrl);
+        if (!response.ok) throw new Error('Network response was not ok');
+        
+        const messages = await response.json();
 
-<!--Start of Tawk.to Script-->
-<script type="text/javascript">
-    var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-    (function(){
-    var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-    s1.async=true;
-    s1.src='https://embed.tawk.to/672fa1872480f5b4f59b306f/1ic90tvak';
-    s1.charset='UTF-8';
-    s1.setAttribute('crossorigin','*');
-    s0.parentNode.insertBefore(s1,s0);
-    })();
-    </script>
-    <!--End of Tawk.to Script-->
+        if (!Array.isArray(messages)) throw new Error('Expected array of messages');
 
+        const chatBox = document.getElementById('chat-box');
+        chatBox.innerHTML = ''; // Clear existing messages
+        messages.forEach(msg => {
+          const messageElement = document.createElement('div');
+          messageElement.className = 'chat-message';
+          messageElement.innerText = `${msg.Timestamp}: ${msg.Message}`;
+          chatBox.appendChild(messageElement);
+        });
+        chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll to latest message
+      } catch (error) {
+        console.error("Error fetching messages:", error);
+      }
+    }
 
-<h2>Click in the Chat button in the lower right corner of the screen and send your query</h2>
+    async function sendMessage() {
+      const input = document.getElementById('message-input');
+      const message = input.value.trim();
+      if (!message) return;
+
+      await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify([{ Timestamp: new Date().toLocaleString(), Message: message }])
+      });
+      input.value = '';
+      fetchMessages(); // Refresh messages
+    }
+
+    document.getElementById('send-button').addEventListener('click', sendMessage);
+    document.getElementById('message-input').addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') sendMessage();
+    });
+
+    fetchMessages();
+    setInterval(fetchMessages, 5000); // Auto-refresh every 5 seconds
+  </script>
+</body>
+</html>
